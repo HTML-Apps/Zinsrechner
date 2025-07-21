@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktiver Zinsrechner</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js for the graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- KaTeX for formula rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" xintegrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" xintegrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaC0mlUF1zUHAGPtGJwIYqrPA0" crossorigin="anonymous"></script>
+
+    <style>
+        /* Custom font for a better look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-6xl bg-white rounded-2xl shadow-xl p-6 md:p-10">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
+
+            <!-- === Input Form Section === -->
+            <div class="lg:col-span-2">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Zinsrechner</h1>
+                <p class="text-gray-500 mb-8">Berechnen Sie Ihr zukünftiges Vermögen.</p>
+                
+                <form id="zins-form" class="space-y-6">
+                    <div>
+                        <label for="startkapital" class="block text-sm font-medium text-gray-700 mb-1">Startkapital (€)</label>
+                        <input type="number" id="startkapital" value="10000" step="100" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label for="sparrate" class="block text-sm font-medium text-gray-700 mb-1">Monatliche Sparrate (€)</label>
+                        <input type="number" id="sparrate" value="500" step="10" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label for="rendite" class="block text-sm font-medium text-gray-700 mb-1">Jährliche Rendite (%)</label>
+                        <input type="number" id="rendite" value="7" step="0.1" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label for="jahre" class="block text-sm font-medium text-gray-700 mb-1">Zeitraum (Jahre)</label>
+                        <input type="number" id="jahre" value="25" step="1" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    
+                    <!-- The button is part of the form, but no specific action is needed here. The form submission event is handled by JS. -->
+                </form>
+            </div>
+
+            <!-- === Results and Graph Section === -->
+            <div class="lg:col-span-3">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Ergebnis</h2>
+                
+                <!-- Results Display -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-indigo-50 p-4 rounded-lg">
+                        <p class="text-sm text-indigo-800">Endkapital</p>
+                        <p id="endkapital-result" class="text-2xl font-bold text-indigo-900">0 €</p>
+                    </div>
+                     <div class="bg-green-50 p-4 rounded-lg">
+                        <p class="text-sm text-green-800">Zinsgewinn</p>
+                        <p id="zinsgewinn-result" class="text-2xl font-bold text-green-900">0 €</p>
+                    </div>
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600">Eingezahlt</p>
+                        <p id="eigenkapital-result" class="text-2xl font-bold text-gray-800">0 €</p>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="h-64 md:h-80">
+                    <canvas id="kapital-chart"></canvas>
+                </div>
+                
+                <!-- Formula Display -->
+                <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+                     <h3 class="text-sm font-semibold text-gray-700 mb-2">Verwendete Formel</h3>
+                     <div id="formula-container" class="text-sm text-gray-600 overflow-x-auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get references to all necessary DOM elements
+            const form = document.getElementById('zins-form');
+            const startkapitalInput = document.getElementById('startkapital');
+            const sparrateInput = document.getElementById('sparrate');
+            const renditeInput = document.getElementById('rendite');
+            const jahreInput = document.getElementById('jahre');
+            
+            const endkapitalResult = document.getElementById('endkapital-result');
+            const eigenkapitalResult = document.getElementById('eigenkapital-result');
+            const zinsgewinnResult = document.getElementById('zinsgewinn-result');
+            
+            const formulaContainer = document.getElementById('formula-container');
+            const chartCanvas = document.getElementById('kapital-chart').getContext('2d');
+            let kapitalChart; // Variable to hold the chart instance
+
+            /**
+             * Formats a number into a German currency string.
+             * @param {number} num - The number to format.
+             * @returns {string} The formatted currency string.
+             */
+            function formatCurrency(num) {
+                return num.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            }
+
+            /**
+             * Main function to calculate interest and update the UI.
+             */
+            function calculateAndDisplay() {
+                // --- 1. Get Input Values ---
+                const startkapital = parseFloat(startkapitalInput.value) || 0;
+                const sparrate = parseFloat(sparrateInput.value) || 0;
+                const rendite = (parseFloat(renditeInput.value) || 0) / 100;
+                const jahre = parseInt(jahreInput.value) || 0;
+                
+                const monatlicheRendite = rendite / 12;
+                const monate = jahre * 12;
+
+                // --- 2. Perform Calculations for each year to build the chart ---
+                const labels = []; // x-axis labels (years)
+                const kapitalData = []; // Total capital data
+                const einzahlungData = []; // Total contributions data
+
+                let aktuellesKapital = startkapital;
+                let eingezahltesKapital = startkapital;
+
+                // Add initial state at year 0
+                labels.push(0);
+                kapitalData.push(startkapital);
+                einzahlungData.push(startkapital);
+
+                for (let i = 1; i <= monate; i++) {
+                    // Add interest to the current capital
+                    aktuellesKapital *= (1 + monatlicheRendite);
+                    // Add the monthly savings rate
+                    aktuellesKapital += sparrate;
+                    
+                    eingezahltesKapital += sparrate;
+
+                    // Store data point at the end of each year
+                    if (i % 12 === 0 || i === monate) {
+                        const aktuellesJahr = Math.ceil(i / 12);
+                        if (!labels.includes(aktuellesJahr)) {
+                            labels.push(aktuellesJahr);
+                            kapitalData.push(aktuellesKapital);
+                            einzahlungData.push(eingezahltesKapital);
+                        }
+                    }
+                }
+                
+                const endkapital = aktuellesKapital;
+                const zinsgewinn = endkapital - eingezahltesKapital;
+
+                // --- 3. Update Result Display ---
+                endkapitalResult.textContent = formatCurrency(endkapital);
+                eigenkapitalResult.textContent = formatCurrency(eingezahltesKapital);
+                zinsgewinnResult.textContent = formatCurrency(zinsgewinn);
+
+                // --- 4. Update or Create Chart ---
+                updateChart(labels, kapitalData, einzahlungData);
+                
+                // --- 5. Render KaTeX Formula ---
+                renderFormula();
+            }
+
+            /**
+             * Updates the chart with new data.
+             * @param {Array<number>} labels - The x-axis labels (years).
+             * @param {Array<number>} kapitalData - The total capital for each year.
+             * @param {Array<number>} einzahlungData - The total contributions for each year.
+             */
+            function updateChart(labels, kapitalData, einzahlungData) {
+                // Destroy the old chart instance if it exists to prevent conflicts
+                if (kapitalChart) {
+                    kapitalChart.destroy();
+                }
+
+                kapitalChart = new Chart(chartCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Endkapital',
+                                data: kapitalData,
+                                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                borderColor: 'rgba(79, 70, 229, 1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 0,
+                                pointHoverRadius: 5,
+                            },
+                            {
+                                label: 'Eingezahltes Kapital',
+                                data: einzahlungData,
+                                backgroundColor: 'rgba(209, 213, 219, 0.2)',
+                                borderColor: 'rgba(107, 114, 128, 1)',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                fill: false,
+                                tension: 0.3,
+                                pointRadius: 0,
+                                pointHoverRadius: 5,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('de-DE') + ' €';
+                                    }
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Jahre'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                align: 'end',
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += formatCurrency(context.parsed.y);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                    }
+                });
+            }
+            
+            /**
+             * Renders the mathematical formula using KaTeX.
+             */
+            function renderFormula() {
+                const formula = `E = K_0(1+r_j)^t + S \\cdot \\frac{(1+r_m)^n - 1}{r_m}`;
+                const legend = `
+                    \\\\ \\small{E = \\text{Endkapital}}
+                    \\\\ \\small{K_0 = \\text{Startkapital}}
+                    \\\\ \\small{S = \\text{Monatl. Sparrate}}
+                    \\\\ \\small{r_j = \\text{Jährl. Rendite}}
+                    \\\\ \\small{r_m = \\text{Monatl. Rendite}}
+                    \\\\ \\small{t = \\text{Jahre}, n = \\text{Monate}}
+                `;
+                
+                try {
+                    katex.render(formula + legend, formulaContainer, {
+                        throwOnError: false,
+                        displayMode: false
+                    });
+                } catch (e) {
+                    console.error("KaTeX rendering failed:", e);
+                    formulaContainer.textContent = "Formel konnte nicht geladen werden.";
+                }
+            }
+
+            // --- Event Listeners ---
+            // Recalculate when any form input changes
+            form.addEventListener('input', calculateAndDisplay);
+            
+            // Initial calculation on page load
+            calculateAndDisplay();
+        });
+    </script>
+
+</body>
+</html>
