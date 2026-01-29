@@ -9,7 +9,6 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Tailwind Konfiguration für Dark Mode via Klasse
         tailwind.config = {
             darkMode: 'class',
         }
@@ -26,12 +25,17 @@
         .transition-all { transition: all 0.3s ease; }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4 transition-all">
+<body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4 transition-all duration-300">
 
-    <div class="w-full max-w-6xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-10 transition-all">
+    <div class="w-full max-w-6xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-10 transition-all duration-300">
         
-        <div class="flex justify-end mb-6">
-            <button id="dark-mode-toggle" class="p-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-yellow-400 hover:scale-110 transition-all border border-gray-200 dark:border-gray-600">
+        <div class="flex flex-row justify-between items-start mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-1">Zinsrechner</h1>
+                <p class="text-gray-500 dark:text-gray-400">Berechnen Sie Ihr zukünftiges Vermögen.</p>
+            </div>
+            
+            <button id="dark-mode-toggle" class="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-yellow-400 hover:scale-110 transition-all border border-gray-200 dark:border-gray-600 flex-shrink-0 ml-4 shadow-sm">
                 <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                 </svg>
@@ -41,12 +45,11 @@
             </button>
         </div>
 
+        <hr class="border-gray-100 dark:border-gray-700 mb-8">
+
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
 
             <div class="lg:col-span-2">
-                <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">Zinsrechner</h1>
-                <p class="text-gray-500 dark:text-gray-400 mb-8">Berechnen Sie Ihr zukünftiges Vermögen.</p>
-                
                 <form id="zins-form" class="space-y-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Startkapital (€)</label>
@@ -68,30 +71,33 @@
             </div>
 
             <div class="lg:col-span-3">
-                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Ergebnis</h2>
-                
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                    <div class="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-lg">
-                        <p class="text-sm text-indigo-800 dark:text-indigo-300">Endkapital</p>
+                    <div class="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-lg border border-indigo-100 dark:border-indigo-800/50">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-1">Endkapital</p>
                         <p id="endkapital-result" class="text-2xl font-bold text-indigo-900 dark:text-indigo-100">0 €</p>
                     </div>
-                    <div class="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
-                        <p class="text-sm text-green-800 dark:text-green-300">Zinsgewinn</p>
+                    <div class="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg border border-green-100 dark:border-green-800/50">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-green-600 dark:text-green-400 mb-1">Zinsgewinn</p>
                         <p id="zinsgewinn-result" class="text-2xl font-bold text-green-900 dark:text-green-100">0 €</p>
                     </div>
-                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Eingezahlt</p>
+                    <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-100 dark:border-gray-600/50">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">Eingezahlt</p>
                         <p id="eigenkapital-result" class="text-2xl font-bold text-gray-800 dark:text-gray-200">0 €</p>
                     </div>
                 </div>
 
-                <div class="h-64 md:h-80">
+                <div class="h-64 md:h-80 relative">
                     <canvas id="kapital-chart"></canvas>
                 </div>
                 
-                <div class="mt-8 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                     <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Verwendete Formel</h3>
-                     <div id="formula-container" class="text-sm text-gray-600 dark:text-gray-400 overflow-x-auto"></div>
+                <div class="mt-8 p-5 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-600/30">
+                     <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        Verwendete Formel
+                     </h3>
+                     <div id="formula-container" class="text-sm text-gray-600 dark:text-gray-400 overflow-x-auto py-2"></div>
                 </div>
             </div>
         </div>
@@ -111,9 +117,13 @@
             darkModeToggle.addEventListener('click', () => {
                 document.documentElement.classList.toggle('dark');
                 const isDark = document.documentElement.classList.contains('dark');
+                
+                // Icons umschalten
                 sunIcon.classList.toggle('hidden', !isDark);
                 moonIcon.classList.toggle('hidden', isDark);
-                calculateAndDisplay(); // Refresh chart for colors
+                
+                // Diagramm mit neuen Farben aktualisieren
+                calculateAndDisplay(); 
             });
 
             function formatCurrency(num) {
@@ -160,7 +170,7 @@
 
                 const isDark = document.documentElement.classList.contains('dark');
                 const textColor = isDark ? '#9ca3af' : '#4b5563';
-                const gridColor = isDark ? 'rgba(75, 85, 99, 0.3)' : 'rgba(209, 213, 219, 0.5)';
+                const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
 
                 kapitalChart = new Chart(document.getElementById('kapital-chart').getContext('2d'), {
                     type: 'line',
@@ -170,18 +180,22 @@
                             {
                                 label: 'Endkapital',
                                 data: kapitalData,
-                                backgroundColor: isDark ? 'rgba(129, 140, 248, 0.2)' : 'rgba(79, 70, 229, 0.1)',
+                                backgroundColor: isDark ? 'rgba(99, 102, 241, 0.2)' : 'rgba(79, 70, 229, 0.1)',
                                 borderColor: '#6366f1',
+                                borderWidth: 3,
                                 fill: true,
-                                tension: 0.3,
-                                pointRadius: 0
+                                tension: 0.4,
+                                pointRadius: 0,
+                                pointHoverRadius: 6
                             },
                             {
                                 label: 'Eingezahlt',
                                 data: einzahlungData,
                                 borderColor: isDark ? '#9ca3af' : '#6b7280',
                                 borderDash: [5, 5],
-                                tension: 0.3,
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4,
                                 pointRadius: 0
                             }
                         ]
@@ -189,6 +203,7 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        interaction: { intersect: false, mode: 'index' },
                         scales: {
                             y: { 
                                 grid: { color: gridColor },
@@ -200,7 +215,14 @@
                             }
                         },
                         plugins: {
-                            legend: { labels: { color: textColor } }
+                            legend: { 
+                                position: 'top',
+                                labels: { color: textColor, usePointStyle: true, boxWidth: 6 } 
+                            },
+                            tooltip: {
+                                padding: 12,
+                                bodySpacing: 4
+                            }
                         }
                     }
                 });
@@ -229,7 +251,7 @@
             }
 
             form.addEventListener('input', calculateAndDisplay);
-            calculateAndDisplay();
+            calculateAndDisplay(); // Initiale Berechnung
         });
     </script>
 </body>
