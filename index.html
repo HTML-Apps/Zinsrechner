@@ -208,6 +208,14 @@
             
             function renderFormula() {
                 const formula = `E = K_0(1+r_j)^t + S \\cdot \\frac{(1+r_m)^n - 1}{r_m}`;
+                const legend = `
+                    \\\\ \\small{E = \\text{Endkapital}}
+                    \\\\ \\small{K_0 = \\text{Startkapital}}
+                    \\\\ \\small{S = \\text{Monatl. Sparrate}}
+                    \\\\ \\small{r_j = \\text{Jährl. Rendite}}
+                    \\\\ \\small{r_m = \\text{Monatl. Rendite}}
+                    \\\\ \\small{t = \\text{Jahre}, n = \\text{Monate}}
+                `;
                 katex.render(formula, formulaContainer, { throwOnError: false, displayMode: true });
             }
 
