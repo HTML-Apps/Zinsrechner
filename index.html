@@ -216,7 +216,16 @@
                     \\\\ \\small{r_m = \\text{Monatl. Rendite}}
                     \\\\ \\small{t = \\text{Jahre}, n = \\text{Monate}}
                 `;
-                katex.render(formula, formulaContainer, { throwOnError: false, displayMode: true });
+                
+                try {
+                    katex.render(formula + legend, formulaContainer, {
+                        throwOnError: false,
+                        displayMode: false
+                    });
+                } catch (e) {
+                    console.error("KaTeX rendering failed:", e);
+                    formulaContainer.textContent = "Formel konnte nicht geladen werden.";
+                }
             }
 
             form.addEventListener('input', calculateAndDisplay);
